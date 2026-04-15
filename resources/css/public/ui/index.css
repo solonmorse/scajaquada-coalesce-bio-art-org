@@ -1,0 +1,4 @@
+/* Public MaryUI interface — styles handled via app.css (Tailwind + DaisyUI) */
+.creek-layer {
+    mix-blend-mode: multiply;
+}
