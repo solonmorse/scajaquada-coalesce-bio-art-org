@@ -23,3 +23,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Exploratory geo data files
+public/*.geojson
+public/*.qmd
