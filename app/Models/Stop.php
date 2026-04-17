@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder published()
+ */
 class Stop extends Model implements HasMedia
 {
     /** @use HasFactory<StopFactory> */
