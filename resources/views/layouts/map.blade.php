@@ -68,10 +68,19 @@ function initLeafletMap() {
     map.getPane('creekPane').style.zIndex = 300;
     map.getPane('creekPane').style.mixBlendMode = 'multiply';
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-    }).addTo(map);
+    const baseMaps = {
+        'Street': L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+            maxZoom: 19,
+        }),
+        'Satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles © Esri — Source: Esri, DigitalGlobe, USDA FSA, USGS, GeoEye, Aerogrid, IGN, IGP, and the GIS User Community',
+            maxZoom: 19,
+        }),
+    };
+
+    baseMaps['Street'].addTo(map);
+    L.control.layers(baseMaps, {}, { position: 'topright', collapsed: false }).addTo(map);
 
     const firstCoord = geom => {
         let c = geom.coordinates;
