@@ -86,9 +86,6 @@ function initLeafletMap() {
     baseMaps['Street'].addTo(map);
     L.control.layers(baseMaps, {}, { position: 'topright', collapsed: false }).addTo(map);
 
-    map.on('baselayerchange', e => {
-        map.getPane('creekPane').style.mixBlendMode = e.name === 'Satellite' ? 'normal' : 'multiply';
-    });
 
     const firstCoord = geom => {
         let c = geom.coordinates;
@@ -157,22 +154,34 @@ function initLeafletMap() {
         })
         .catch(err => console.error('watershed.geojson error:', err));
 
+    const creekStyle = (feature, satellite) => {
+        const tunnel = feature.properties.tunnel;
+        const underground = tunnel === 'yes' || tunnel === 'culvert';
+        const widthMap = { 1: 1, 2: 3, 3: 5 };
+        const weight = widthMap[feature.properties.width] ?? 6;
+        if (underground) {
+            return satellite
+                ? { color: '#ffffff', weight: 2, opacity: 0.8, dashArray: '1 6', lineCap: 'round', lineJoin: 'round' }
+                : { color: '#000000', weight: 1.5, opacity: 0.5, dashArray: '1 4', lineCap: 'round', lineJoin: 'round' };
+        }
+        return satellite
+            ? { weight: 0, opacity: 0 }
+            : { color: '#AAD3DF', weight, opacity: 0.85, lineCap: 'round', lineJoin: 'round' };
+    };
+
     fetch('/scajacuada_creek.geojson')
         .then(r => r.json())
         .then(data => {
-            L.geoJSON(data, {
+            const creekLayer = L.geoJSON(data, {
                 pane: 'creekPane',
-                style: feature => {
-                    const tunnel = feature.properties.tunnel;
-                    const underground = tunnel === 'yes' || tunnel === 'culvert';
-                    const widthMap = { 1: 1, 2: 3, 3: 5 };
-                    const weight = widthMap[feature.properties.width] ?? 6;
-                    if (underground) {
-                        return { color: '#000000', weight: 1.5, opacity: 0.5, dashArray: '1 4', lineCap: 'round', lineJoin: 'round' };
-                    }
-                    return { color: '#AAD3DF', weight, opacity: 0.85, lineCap: 'round', lineJoin: 'round' };
-                },
+                style: feature => creekStyle(feature, false),
             }).addTo(map);
+
+            map.on('baselayerchange', e => {
+                const satellite = e.name === 'Satellite';
+                map.getPane('creekPane').style.mixBlendMode = satellite ? 'normal' : 'multiply';
+                creekLayer.eachLayer(l => l.setStyle(creekStyle(l.feature, satellite)));
+            });
         })
         .catch(err => console.error('scajacuada_creek.geojson error:', err));
 
