@@ -204,7 +204,7 @@ function initLeafletMap() {
 
                 const tooltipContent = stop.icon_url
                     ? `<div style="text-align:center; line-height:1.3;">
-                           <img src="${stop.icon_url}" style="max-width:225px; max-height:225px; width:auto; height:auto; display:block; margin:0 auto 0.3rem;">
+                           <img src="${stop.icon_url}" style="max-width:300px; max-height:300px; width:auto; height:auto; display:block; margin:0 auto 0.3rem;">
                            <strong>${stop.title}</strong>
                        </div>`
                     : `<strong>${stop.title}</strong>`;
