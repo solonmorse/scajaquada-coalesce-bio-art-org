@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Stop;
+use Illuminate\Support\Js;
 use function Livewire\Volt\{computed, layout, state};
 
 layout('layouts.map');
@@ -18,38 +19,38 @@ $stopsJson = computed(function () {
                 'type' => $stop->type?->value,
                 'type_label' => $stop->type?->label(),
                 'type_color' => $stop->type?->color(),
-                'latitude' => (float) $stop->latitude,
-                'longitude' => (float) $stop->longitude,
+                'latitude' => (float)$stop->latitude,
+                'longitude' => (float)$stop->longitude,
                 'trail_order' => $stop->trail_order,
                 'icon_url' => $stop->getFirstMediaUrl('icon') ?: null,
-                'photo' => $stop->getMedia('photo')->map(fn ($m) => [
+                'photo' => $stop->getMedia('photo')->map(fn($m) => [
                     'url' => $m->getUrl(),
                     'mime_type' => $m->mime_type,
                     'name' => $m->name,
                 ])->toBase()->merge(
-                    $stop->assets->where('type', 'photo')->map(fn ($a) => [
+                    $stop->assets->where('type', 'photo')->map(fn($a) => [
                         'url' => $a->getFirstMediaUrl('file'),
                         'mime_type' => $a->getFirstMedia('file')?->mime_type,
                         'name' => $a->title,
                     ])
                 )->values()->toArray(),
-                'audio' => $stop->getMedia('audio')->map(fn ($m) => [
+                'audio' => $stop->getMedia('audio')->map(fn($m) => [
                     'url' => $m->getUrl(),
                     'mime_type' => $m->mime_type,
                     'name' => $m->name,
                 ])->toBase()->merge(
-                    $stop->assets->where('type', 'audio')->map(fn ($a) => [
+                    $stop->assets->where('type', 'audio')->map(fn($a) => [
                         'url' => $a->getFirstMediaUrl('file'),
                         'mime_type' => $a->getFirstMedia('file')?->mime_type,
                         'name' => $a->title,
                     ])
                 )->values()->toArray(),
-                'video' => $stop->getMedia('video')->map(fn ($m) => [
+                'video' => $stop->getMedia('video')->map(fn($m) => [
                     'url' => $m->getUrl(),
                     'mime_type' => $m->mime_type,
                     'name' => $m->name,
                 ])->toBase()->merge(
-                    $stop->assets->where('type', 'video')->map(fn ($a) => [
+                    $stop->assets->where('type', 'video')->map(fn($a) => [
                         'url' => $a->getFirstMediaUrl('file'),
                         'mime_type' => $a->getFirstMedia('file')?->mime_type,
                         'name' => $a->title,
@@ -71,9 +72,12 @@ $stopsJson = computed(function () {
     <div id="sidebar">
 
         {{-- Header --}}
-        <div style="padding: 1rem 1.25rem; border-bottom: 2px solid oklch(var(--b3)); background: oklch(var(--b2)); flex-shrink: 0;">
-            <h1 style="margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(var(--bc));">Trail Stops</h1>
-            <p style="margin: 0.2rem 0 0; font-size: 0.75rem; color: oklch(var(--bc) / 0.45);">Select a stop to explore media</p>
+        <div
+            style="padding: 1rem 1.25rem; border-bottom: 2px solid oklch(var(--b3)); background: oklch(var(--b2)); flex-shrink: 0;">
+            <h1 style="margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(var(--bc));">
+                Trail Stops</h1>
+            <p style="margin: 0.2rem 0 0; font-size: 0.75rem; color: oklch(var(--bc) / 0.45);">Select a stop to explore
+                media</p>
         </div>
 
         {{-- Stop list --}}
@@ -85,7 +89,8 @@ $stopsJson = computed(function () {
                     <x-mary-collapse separator>
                         <x-slot:heading>
                             <div class="flex items-center gap-3">
-                                <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-base-300 text-base-content/60">
+                                <span
+                                    class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-base-300 text-base-content/60">
                                     {{ $stop['trail_order'] ?? $loop->iteration }}
                                 </span>
                                 <span class="flex-1 text-sm font-semibold">{{ $stop['title'] }}</span>
@@ -104,7 +109,7 @@ $stopsJson = computed(function () {
                                     @foreach ($stop['photo'] as $photo)
                                         <img src="{{ $photo['url'] }}" alt="{{ $photo['name'] }}" loading="lazy"
                                              style="cursor: zoom-in;"
-                                             @click="lightbox = {{ \Illuminate\Support\Js::from(['type' => 'photo', 'url' => $photo['url'], 'mime' => $photo['mime_type'], 'title' => $photo['name']]) }}">
+                                             @click="lightbox = {{ Js::from(['type' => 'photo', 'url' => $photo['url'], 'mime' => $photo['mime_type'], 'title' => $photo['name']]) }}">
                                     @endforeach
                                 </div>
                             @endif
@@ -115,7 +120,8 @@ $stopsJson = computed(function () {
                                 @foreach ($stop['audio'] as $track)
                                     <div style="margin-bottom: 0.5rem;">
                                         <p style="font-size: 0.7rem; color: oklch(var(--bc) / 0.45); margin: 0 0 0.2rem;">{{ $track['name'] }}</p>
-                                        <audio controls src="{{ $track['url'] }}" style="width: 100%; border-radius: 0.375rem;"></audio>
+                                        <audio controls src="{{ $track['url'] }}"
+                                               style="width: 100%; border-radius: 0.375rem;"></audio>
                                     </div>
                                 @endforeach
                             @endif
@@ -124,12 +130,19 @@ $stopsJson = computed(function () {
                             @if (count($stop['video']) > 0)
                                 <p class="media-section-title">Video</p>
                                 @foreach ($stop['video'] as $clip)
-                                    <div style="position: relative; cursor: pointer; background: #000; border-radius: 0.375rem; overflow: hidden; margin-bottom: 0.5rem;"
-                                         @click="lightbox = {{ \Illuminate\Support\Js::from(['type' => 'video', 'url' => $clip['url'], 'mime' => $clip['mime_type'], 'title' => $clip['name']]) }}">
-                                        <video src="{{ $clip['url'] }}#t=0.5" preload="metadata" style="width: 100%; opacity: 0.7; display: block;"></video>
-                                        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-                                            <div style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center;">
-                                                <svg style="width: 1rem; height: 1rem; fill: white; margin-left: 2px;" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    <div
+                                        style="position: relative; cursor: pointer; background: #000; border-radius: 0.375rem; overflow: hidden; margin-bottom: 0.5rem;"
+                                        @click="lightbox = {{ Js::from(['type' => 'video', 'url' => $clip['url'], 'mime' => $clip['mime_type'], 'title' => $clip['name']]) }}">
+                                        <video src="{{ $clip['url'] }}#t=0.5" preload="metadata"
+                                               style="width: 100%; opacity: 0.7; display: block;"></video>
+                                        <div
+                                            style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+                                            <div
+                                                style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center;">
+                                                <svg style="width: 1rem; height: 1rem; fill: white; margin-left: 2px;"
+                                                     viewBox="0 0 24 24">
+                                                    <path d="M8 5v14l11-7z"/>
+                                                </svg>
                                             </div>
                                         </div>
                                     </div>
@@ -140,7 +153,8 @@ $stopsJson = computed(function () {
                     </x-mary-collapse>
                 </div>
             @empty
-                <p style="padding: 2rem; text-align: center; color: oklch(var(--bc) / 0.35); font-size: 0.875rem;">No published stops yet.</p>
+                <p style="padding: 2rem; text-align: center; color: oklch(var(--bc) / 0.35); font-size: 0.875rem;">No
+                    published stops yet.</p>
             @endforelse
 
         </div>
@@ -164,14 +178,17 @@ $stopsJson = computed(function () {
         </button>
         <div style="position: relative; max-width: 90vw; width: 100%;">
             <template x-if="lightbox?.type === 'photo'">
-                <img :src="lightbox.url" :alt="lightbox.title" style="width: 100%; max-height: 85vh; object-fit: contain; border-radius: 0.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5);">
+                <img :src="lightbox.url" :alt="lightbox.title"
+                     style="width: 100%; max-height: 85vh; object-fit: contain; border-radius: 0.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5);">
             </template>
             <template x-if="lightbox?.type === 'video'">
-                <video controls autoplay style="width: 100%; max-height: 85vh; border-radius: 0.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5);">
+                <video controls autoplay
+                       style="width: 100%; max-height: 85vh; border-radius: 0.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5);">
                     <source :src="lightbox.url" :type="lightbox.mime">
                 </video>
             </template>
-            <p x-text="lightbox?.title" style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.875rem; margin-top: 0.75rem;"></p>
+            <p x-text="lightbox?.title"
+               style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.875rem; margin-top: 0.75rem;"></p>
         </div>
     </div>
 </div>
