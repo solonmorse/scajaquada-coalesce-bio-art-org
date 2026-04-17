@@ -23,8 +23,9 @@ class StopsTable
                     ->sortable(),
                 TextColumn::make('type')
                     ->badge()
-                    ->color(fn (StopType $state): string => $state->color())
-                    ->formatStateUsing(fn (StopType $state): string => $state->label())
+                    ->color(fn (?StopType $state): string => $state?->color() ?? 'gray')
+                    ->formatStateUsing(fn (?StopType $state): string => $state?->label() ?? '—')
+                    ->placeholder('—')
                     ->searchable(),
                 TextColumn::make('latitude')
                     ->numeric(decimalPlaces: 4)

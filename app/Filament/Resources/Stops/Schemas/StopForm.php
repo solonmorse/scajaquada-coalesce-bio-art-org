@@ -45,13 +45,19 @@ class StopForm
                                     ->options(collect(StopType::cases())->mapWithKeys(
                                         fn (StopType $type) => [$type->value => $type->label()]
                                     ))
-                                    ->default(StopType::Scenic->value)
-                                    ->required(),
+                                    ->placeholder('None')
+                                    ->nullable()
+                                    ->default(null),
                             ]),
                         Toggle::make('is_published'),
                     ]),
                 Section::make('Media')
                     ->schema([
+                        SpatieMediaLibraryFileUpload::make('icon')
+                            ->collection('icon')
+                            ->acceptedFileTypes(['image/svg+xml', 'image/png', 'image/webp'])
+                            ->label('Map Icon')
+                            ->helperText('SVG or PNG icon shown on the map for this stop.'),
                         SpatieMediaLibraryFileUpload::make('photo')
                             ->collection('photo')
                             ->multiple()

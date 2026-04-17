@@ -29,8 +29,7 @@ $assets = computed(function () {
             <span class="font-bold text-lg">Jesse Kregel Trail</span>
         </x-slot:brand>
         <x-slot:actions>
-            <x-mary-button label="Resources" link="{{ route('resources.index') }}" class="btn-ghost btn-sm" />
-            <x-mary-button label="Map" link="{{ route('map') }}" class="btn-ghost btn-sm" />
+            <x-mary-button label="Map" link="{{ route('home') }}" class="btn-ghost btn-sm" />
             @auth
                 <x-mary-button label="Admin" link="/admin" class="btn-ghost btn-sm" />
             @endauth
@@ -126,7 +125,7 @@ $assets = computed(function () {
                             @endif
 
                             @if ($asset->stop)
-                                <a href="{{ route('map') }}?stop={{ $asset->stop_id }}"
+                                <a href="{{ route('home') }}?stop={{ $asset->stop_id }}"
                                    wire:navigate
                                    class="btn btn-sm btn-ghost mt-2 w-full text-base-content/50">
                                     Show on map →
