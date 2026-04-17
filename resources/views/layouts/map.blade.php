@@ -21,6 +21,7 @@
         .photo-grid img { width: 100%; height: 90px; object-fit: cover; border-radius: 0.375rem; }
         audio, video { width: 100%; margin-bottom: 0.5rem; border-radius: 0.375rem; }
         .media-section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: oklch(var(--bc) / 0.5); margin: 1rem 0 0.4rem; }
+        .stop-icon-tooltip { white-space: normal; max-width: none; padding: 0.5rem; }
     </style>
 </head>
 <body>
@@ -208,7 +209,7 @@ function initLeafletMap() {
                            <strong>${stop.title}</strong>
                        </div>`
                     : `<strong>${stop.title}</strong>`;
-                marker.bindTooltip(tooltipContent, { permanent: false, direction: 'top', opacity: 0.95 });
+                marker.bindTooltip(tooltipContent, { permanent: false, direction: 'top', opacity: 0.95, className: 'stop-icon-tooltip' });
 
                 marker.on('click', () => {
                     window.dispatchEvent(new CustomEvent('stop-selected', { detail: stop }));
