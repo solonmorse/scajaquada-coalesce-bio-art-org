@@ -62,6 +62,8 @@
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
                 box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+                background: canvas;
+                opacity: 1;
             }
             #sidebar.sidebar-open { transform: translateX(0); }
             #sidebar-backdrop {
