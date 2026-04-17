@@ -68,16 +68,27 @@ $stopsJson = computed(function () {
      x-data="mapApp({{ json_encode($this->stopsJson) }}, {{ request()->query('stop', 'null') }})"
      x-init="init()">
 
+    {{-- Mobile backdrop --}}
+    <div id="sidebar-backdrop"
+         x-show="sidebarOpen"
+         x-transition.opacity
+         @click="sidebarOpen = false"
+         style="display:none;"></div>
+
     {{-- Sidebar --}}
-    <div id="sidebar">
+    <div id="sidebar" :class="sidebarOpen ? 'sidebar-open' : ''">
 
         {{-- Header --}}
         <div
-            style="padding: 1rem 1.25rem; border-bottom: 2px solid oklch(var(--b3)); background: oklch(var(--b2)); flex-shrink: 0;">
-            <h1 style="margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(var(--bc));">
-                Trail Stops</h1>
-            <p style="margin: 0.2rem 0 0; font-size: 0.75rem; color: oklch(var(--bc) / 0.45);">Select a stop to explore
-                media</p>
+            style="padding: 1rem 1.25rem; border-bottom: 2px solid oklch(var(--b3)); background: oklch(var(--b2)); flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between;">
+            <div>
+                <h1 style="margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(var(--bc));">
+                    Trail Stops</h1>
+                <p style="margin: 0.2rem 0 0; font-size: 0.75rem; color: oklch(var(--bc) / 0.45);">Select a stop to explore media</p>
+            </div>
+            <button @click="sidebarOpen = false"
+                    id="sidebar-close"
+                    style="background: none; border: none; cursor: pointer; padding: 0.25rem; color: oklch(var(--bc) / 0.5); line-height: 1;">✕</button>
         </div>
 
         {{-- Stop list --}}
@@ -159,6 +170,19 @@ $stopsJson = computed(function () {
 
         </div>
     </div>
+
+    {{-- Locate me button --}}
+    <button id="locate-btn" title="Show my location">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" opacity="0.3"/>
+        </svg>
+    </button>
+
+    {{-- Mobile toggle button --}}
+    <button id="sidebar-toggle" @click="sidebarOpen = true">
+        <svg style="width:1rem;height:1rem;fill:currentColor;" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        Trail Stops
+    </button>
 
     {{-- Map --}}
     <div id="map-container">

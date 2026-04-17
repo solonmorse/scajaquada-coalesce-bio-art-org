@@ -21,6 +21,79 @@
         .photo-grid img { width: 100%; height: 90px; object-fit: cover; border-radius: 0.375rem; }
         audio, video { width: 100%; margin-bottom: 0.5rem; border-radius: 0.375rem; }
         .media-section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: oklch(var(--bc) / 0.5); margin: 1rem 0 0.4rem; }
+        #locate-btn {
+            position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 800;
+            width: 2.75rem; height: 2.75rem;
+            background: oklch(var(--b1)); border: 2px solid oklch(var(--b3));
+            border-radius: 9999px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18); transition: background 0.15s, border-color 0.15s;
+        }
+        #locate-btn:hover { background: oklch(var(--b2)); }
+        #locate-btn.active { background: #4A90D9; border-color: #4A90D9; color: white; }
+        #locate-btn svg { width: 1.25rem; height: 1.25rem; }
+        @keyframes user-location-pulse {
+            0%   { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(3.5); opacity: 0; }
+        }
+        .leaflet-user-dot {
+            width: 16px; height: 16px;
+            background: #4A90D9; border: 2.5px solid white;
+            border-radius: 50%; position: relative;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .leaflet-user-dot::after {
+            content: ''; position: absolute;
+            top: -4px; left: -4px; width: 16px; height: 16px;
+            background: #4A90D9; border-radius: 50%; opacity: 0.6;
+            animation: user-location-pulse 1.8s ease-out infinite;
+        }
+        #sidebar-toggle { display: none; }
+        #sidebar-backdrop { display: none; }
+        #sidebar-close { display: none; }
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                height: 100dvh;
+                width: 85vw;
+                max-width: 360px;
+                z-index: 900;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+            }
+            #sidebar.sidebar-open { transform: translateX(0); }
+            #sidebar-backdrop {
+                display: block;
+                position: fixed;
+                inset: 0;
+                z-index: 899;
+                background: rgba(0,0,0,0.4);
+                backdrop-filter: blur(2px);
+            }
+            #sidebar-close { display: block; }
+            #sidebar-toggle {
+                display: flex;
+                position: fixed;
+                bottom: 1.5rem;
+                left: 1.5rem;
+                z-index: 800;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.6rem 1rem;
+                background: oklch(var(--p));
+                color: oklch(var(--pc));
+                border: none;
+                border-radius: 9999px;
+                font-size: 0.8rem;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+                cursor: pointer;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            }
+        }
     </style>
 </head>
 <body>
@@ -253,6 +326,60 @@ function initLeafletMap() {
                 }
             }
         });
+
+    // User location
+    let locationMarker = null;
+    let accuracyCircle = null;
+    let watching = false;
+    let firstFix = true;
+
+    const dotIcon = L.divIcon({
+        className: '',
+        html: '<div class="leaflet-user-dot"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+    });
+
+    map.on('locationfound', e => {
+        if (accuracyCircle) { map.removeLayer(accuracyCircle); }
+        if (locationMarker) { map.removeLayer(locationMarker); }
+
+        accuracyCircle = L.circle(e.latlng, {
+            radius: e.accuracy,
+            color: '#4A90D9', fillColor: '#4A90D9',
+            fillOpacity: 0.08, weight: 1, opacity: 0.4,
+        }).addTo(map);
+
+        locationMarker = L.marker(e.latlng, { icon: dotIcon, zIndexOffset: 1000 }).addTo(map);
+
+        if (firstFix) {
+            map.setView(e.latlng, 16, { animate: true });
+            firstFix = false;
+        }
+    });
+
+    map.on('locationerror', e => {
+        console.warn('Location error:', e.message);
+        watching = false;
+        firstFix = true;
+        document.getElementById('locate-btn')?.classList.remove('active');
+    });
+
+    document.getElementById('locate-btn')?.addEventListener('click', () => {
+        if (!watching) {
+            watching = true;
+            firstFix = true;
+            map.locate({ watch: true, enableHighAccuracy: true });
+            document.getElementById('locate-btn').classList.add('active');
+        } else {
+            watching = false;
+            firstFix = true;
+            map.stopLocate();
+            document.getElementById('locate-btn').classList.remove('active');
+            if (locationMarker)  { map.removeLayer(locationMarker);  locationMarker = null; }
+            if (accuracyCircle)  { map.removeLayer(accuracyCircle);  accuracyCircle = null; }
+        }
+    });
 }
 
 document.addEventListener('livewire:navigated', initLeafletMap);
@@ -272,6 +399,7 @@ function mapApp(stopsData, focusStopId) {
     return {
         stops: stopsData,
         lightbox: null,
+        sidebarOpen: false,
 
         init() {
             window.addEventListener('stop-selected', (e) => {
