@@ -82,6 +82,10 @@ function initLeafletMap() {
     baseMaps['Street'].addTo(map);
     L.control.layers(baseMaps, {}, { position: 'topright', collapsed: false }).addTo(map);
 
+    map.on('baselayerchange', e => {
+        map.getPane('creekPane').style.mixBlendMode = e.name === 'Satellite' ? 'normal' : 'multiply';
+    });
+
     const firstCoord = geom => {
         let c = geom.coordinates;
         while (Array.isArray(c[0])) { c = c[0]; }
