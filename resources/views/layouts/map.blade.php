@@ -21,7 +21,6 @@
         .photo-grid img { width: 100%; height: 90px; object-fit: cover; border-radius: 0.375rem; }
         audio, video { width: 100%; margin-bottom: 0.5rem; border-radius: 0.375rem; }
         .media-section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: oklch(var(--bc) / 0.5); margin: 1rem 0 0.4rem; }
-        .stop-icon-tooltip { white-space: normal; max-width: none; padding: 0.5rem; }
     </style>
 </head>
 <body>
@@ -203,13 +202,16 @@ function initLeafletMap() {
                     fillOpacity: 0.85,
                 }).addTo(map);
 
-                const tooltipContent = stop.icon_url
-                    ? `<div style="text-align:center; line-height:1.3;">
-                           <img src="${stop.icon_url}" style="max-width:300px; max-height:300px; width:auto; height:auto; display:block; margin:0 auto 0.3rem;">
-                           <strong>${stop.title}</strong>
+                const popupContent = stop.icon_url
+                    ? `<div style="text-align:center; line-height:1.4;">
+                           <img src="${stop.icon_url}" style="max-width:280px; max-height:280px; width:auto; height:auto; display:block; margin:0 auto 0.5rem;">
+                           <strong style="font-size:0.9rem;">${stop.title}</strong>
                        </div>`
-                    : `<strong>${stop.title}</strong>`;
-                marker.bindTooltip(tooltipContent, { permanent: false, direction: 'top', opacity: 0.95, className: 'stop-icon-tooltip' });
+                    : `<strong style="font-size:0.9rem;">${stop.title}</strong>`;
+
+                marker.bindPopup(popupContent, { maxWidth: 320, autoPan: false });
+                marker.on('mouseover', () => marker.openPopup());
+                marker.on('mouseout',  () => marker.closePopup());
 
                 marker.on('click', () => {
                     window.dispatchEvent(new CustomEvent('stop-selected', { detail: stop }));
