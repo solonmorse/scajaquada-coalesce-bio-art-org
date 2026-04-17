@@ -64,6 +64,10 @@ function initLeafletMap() {
     map.createPane('landusePane');
     map.getPane('landusePane').style.zIndex = 220;
 
+    map.createPane('lakesPane');
+    map.getPane('lakesPane').style.zIndex = 290;
+    map.getPane('lakesPane').style.mixBlendMode = 'multiply';
+
     map.createPane('creekPane');
     map.getPane('creekPane').style.zIndex = 300;
     map.getPane('creekPane').style.mixBlendMode = 'multiply';
@@ -176,7 +180,7 @@ function initLeafletMap() {
         .then(r => r.json())
         .then(data => {
             L.geoJSON(data, {
-                pane: 'creekPane',
+                pane: 'lakesPane',
                 style: {
                     color: '#AAD3DF',
                     weight: 0,
