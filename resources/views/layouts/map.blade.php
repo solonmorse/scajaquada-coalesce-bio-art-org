@@ -192,29 +192,23 @@ function initLeafletMap() {
             map.fitBounds(trail.getBounds(), { padding: [40, 40] });
 
             stopsData.forEach(stop => {
-                let marker;
-                if (stop.icon_url) {
-                    marker = L.marker([stop.latitude, stop.longitude], {
-                        icon: L.icon({
-                            iconUrl: stop.icon_url,
-                            iconSize: [36, 36],
-                            iconAnchor: [18, 36],
-                            popupAnchor: [0, -36],
-                        }),
-                    }).addTo(map);
-                } else {
-                    const color = typeColors[stop.type] || '#6b7280';
-                    marker = L.circleMarker([stop.latitude, stop.longitude], {
-                        radius: 10,
-                        fillColor: color,
-                        color: '#ffffff',
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.85,
-                    }).addTo(map);
-                }
+                const color = typeColors[stop.type] || '#6b7280';
+                const marker = L.circleMarker([stop.latitude, stop.longitude], {
+                    radius: 10,
+                    fillColor: color,
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.85,
+                }).addTo(map);
 
-                marker.bindTooltip(stop.title, { permanent: false, direction: 'top' });
+                const tooltipContent = stop.icon_url
+                    ? `<div style="text-align:center; line-height:1.3;">
+                           <img src="${stop.icon_url}" style="width:64px; height:64px; object-fit:contain; display:block; margin:0 auto 0.3rem;">
+                           <strong>${stop.title}</strong>
+                       </div>`
+                    : `<strong>${stop.title}</strong>`;
+                marker.bindTooltip(tooltipContent, { permanent: false, direction: 'top', opacity: 0.95 });
 
                 marker.on('click', () => {
                     window.dispatchEvent(new CustomEvent('stop-selected', { detail: stop }));
