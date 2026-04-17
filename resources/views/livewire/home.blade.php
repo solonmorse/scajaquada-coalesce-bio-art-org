@@ -1,71 +1,31 @@
 <?php
 
-use function Livewire\Volt\{state};
+use function Livewire\Volt\{layout};
 
-state([]);
+layout('layouts.landing');
 
 ?>
 
-<div class="min-h-screen bg-base-100">
+<div style="position: relative; width: 100%; height: 100vh; background: #454a55; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+
+    {{-- Geographic outline background --}}
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 1000 1000"
+         style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.1; pointer-events: none;"
+         preserveAspectRatio="xMidYMid slice">
+        <path fill="#fafdfd" stroke="#fff" stroke-linecap="square" stroke-linejoin="bevel" stroke-width="3"
+              d="M811.98,406.3l8.94,5.02,6.86,4.88,3.64,3.54,2.95,1.7,2.14.03,1.81-1.36-1.05-6.28-5.99-13.5-5.81-9.75-3.15-3.09-5.68-4.76-6.94-6.19-7.45-6.79-5.99-4.11-10.58-4.69-5.49-1.51-5.06-1.87-11.34-3.66-7.01-1.84-3.85-.83-3.11-1.1-3.12-.78-4.61-3.1-1.58.25-1.26-.37.19-1.04-1.55-.7-5.37-1.51-6.13-2.01-7.85-2.69-5.05-.99-3.51.02-6.02.4-5.06.89-3.64,1.2-3.21,1.92-2.72,2.38-2.45,2.1-.68,1.27-.37,1.25-5.11,2.19-4.17.57-7.11-.18-7-.71-3.44-.69-3.2-.64-2.84-.31-6.97-2.29-1.95-2.05-1.51-7.82.2-.52,1.22-.65,3.05-.36,5.7-2.06,1.75-.83.69-.96-.67-1.63-.44-1.83-.82-1.88-1.04-2.55-1.71-2.42-2.09-2.67-1.74-1.94-1.71-1.32-3.04-1.74-1.7-.87-1.19-.6-2.55-.43-3.48-.71-3.76-1.17-1.47.06-2.34.27-2.48.48-2.65.7-2.34.94-1.92,1.47-3.04,2.84-4.04,4.48-1.18,1.39-1.06.57-.41.85-.29,1.29-.43,1.79-4.5,1.1-4.06.36-4.99,1.09h-7.85l-2.82-.43-4.2.04-8.15-.83-5.24-.98-3.51-1.23-3.01-2.71-2.01-2.56-2.62-3.18-3.67-3.88-1.91-3.03-3.96-4.82-1.81-2.41-3.19-4.01-1.03-1.02-2.62-3.34-.45-.68-.28-.25-5.09-3.8-3.71-.83-4.39-.54-4.92-1.53-7.16-4.66-3-4.04-7.48-6.88-5.71-5.78-5.05-3.93-4.58-2.49-6.18-.67-5.33.25-7.61.15-5.53-.4-8.59-1.44-10.62-1.84-11.97-1.08-9.31-1.52-2.87.25-12.65-3.67-5.24-1.62-5.74.09-2.65.37-1.45.15-4.1,1.32-10.34,1.98-2.31.83-5.33.95-5.65.23-9.02.02-6.54,1.29-6.9,2.04-5.2.94-9.67,3.06-8.43,2.71-3.7,1.59-3.59,2.95-6.31,4.83-11.64,8.13-8.8,6.33-13.53,8.27-4.61,2.91-16.83,12.28-6.7,4.34-5.37,4.2-3.16,2.25-11.27,8.2-3.03,2.29-5.59,3.31-4.45,2.84-2.97,2.13-8.71,8.13-1.95,3.14-.32,2.5.32,5.22,1.58,3.26,4.8,9.36,1.25,10.3-.85,9.96-5.12,7.26-9.14,5.22-13.67,4.49-17.77,12.05-5.6,3.76-3.4,2.02-8.09,5.23-11.45,14.1-6.31,5.59-1.59,1.77-1.93,1.66-1.83.9-1.62.8-3.82.44-.29.15-.87.43-4.85-.33-.36-.31-.24-.24-5.64-3.18-5.28-4.78-4.16-1.76-.76-1.66-.34-3.56-5.43-7.09.47-1.07-13.38-8.46-3.77.42-1,.37,2.17,2.47,4.26,3.53,6.04,5.17,4.13,5.77,1.72,4.58.26,2.07-5.26,2.28-9.49.71-.97-1.69-3.46-9.16-2.47.48-5.22-10.47-5.13-6.26-2.98-2.96-14.63-11.93-13.98-12.49-6.56,2.59,5.98,6.61.15,1.78-1.99.85-2.51-.1-15.59-13.48-9.92-8.91-.49-.22-.62-.45-17.52-12.71-8.55-6.2.89-.68,1-.74,7.74-5.55-22.71-18.07-.25-.2v-.46s5.55-1.57,5.55-1.57l-.59-1.3-1.33-2.49-2.67-4.88-.13-.23,2.56-.74-.5-.92-1.2-2.41-1.33.4-5.92,1.69-1.6.47-.4.11-1.52-2.89-.7-1.4-1.86-3.87,5.3-1.33,1.27-.35,3.76-1.03-.1-.2,1.38-.38.85-.22.34-.06-2.56-4.93-4.33,1.2-.95.28-1.2-2.33-24.34,6.76-2.63-.06-8.17-6.04-2.78-2.47-5.66-3.49v29.55l4.32,2.5,2.4,4.62,3.16.74,6.43,3.14,1.89,2.77,3.03,2.4,2.94-1.27,3.33-2.33,1.23.8,2.39-.08.57-.02,11.39,16.28,4.12,5.14,25.4,18.43,14.03,9.74,9.44,7.63.28,2.59,11.61,13.79,8.77,12.8,1.08,6.52.88,12.38,3.41,20.79,5.18,25.04,1.64,32.25,4.67,20.24,2.02,10.63-5.37,24.32-1.32,12.73-9.84,31.7-6.81,21.35-8.33,14.97-5.05,7.01-4.33,11.71-7.73,23.16-2.27,8.44,1.24,26.75.64,18.28,1.75-.14.54,8.71H2.17l4.15-21.25,38.02-117.7,9.93-24.34,9.96-46.43,1.77-47.13-.51-29.57-1.04-15.42.83-2.99-1.31-8.01,2.42-1.34,9.99-2.4.88-.16,6.9-.39,2.32,1.16,7.3,3.01,5.69,1.04.24-.11.46-.2,4.98.33.6.24.27.12.93.44,5.75-2.31-.16-1.04,1.71-.84,1.78-.87.83.36,4.33-2.95,4.14-3.51,16.5-17.21,11.88-9.05,9.51-6.48,7.19-4.42,9.32-3.7,10.2-2.93,5.81-4.13,6.4-11.55,2.27-4.5-.09-5.01-1.54-10.54-2.34-2.86-4.51-10.46.03-5.61,2.84-3.81,8.55-5.57,20.38-15.62,5.68-4.06,14.65-11.07,4.66-3.95,21.36-13.67,27.76-19.49,6.72-4.39,4.58-3.88,14.64-4.74,9.43-2.61,8.64-2.19,3.35-.24,2.96-.16,6.94-.47,28.17.31,3.82-.35,4.23.53,12.43-1.96,5.05.83,24.48,1.08,19.43,3.56,9.28,1.59,1.72-.05,2.12-.83,3.71-.18,4.22-.3,2.59.53,1.86.81,1.46.8.75,1,3.45,3.27,15.9,14.07,3.56,4.52,4.84,3.71,4.74,1.46,6.42.4,3.39.48,2.36,1.98,2.82,3.49,1.32,1.82,5.04,5.32,2.32,2.24,2.67,2.89,2.47,4.63,2.59,3.51,7.98,8.61,2.32,1.36,2.92.86,21.96,3.17,4.17.28,4.48-.79,5.32-.27,6.76-.21,5.19,2.17,5.93,1.75,7.24,1.18,3.48.27,8.01.28,1.12-.72.11.81,1.2-.07.71-.08.95.03.05.73.87,6.88-.73,3.39.3,2.31,1.41,1.08,2.16.28,4.76,1.94,2.07.8,1.46.97,2.88,3.94.43.79,2.07,4.06,2.02,4.3.36.64.44.57.96,1,.69.62.83.54.76.34,1.51.68,5.36,2.4,1.23.48.59.11.63.08h1.32s11.45.02,11.45.02l.53-.05.6-.09.8-.16,4.72-1-.06-.18,3.42-.73.12.25,2.66-.62,11.33.4,11.88-.4,18.17,3.84,30.3,7.89,15.08,5.96,4.32,2.62,1.15,1.28,1.01.13,1.61,1,4.46,1.71,12.05,5.96,3.85,2.14Z"/>
+    </svg>
 
     {{-- Navigation --}}
-    <x-mary-nav sticky class="bg-base-200 border-b border-base-300">
-        <x-slot:brand>
-            <span class="font-bold text-lg">Jesse Kregel Trail</span>
-        </x-slot:brand>
-        <x-slot:actions>
-            <x-mary-button label="Resources" link="{{ route('resources.index') }}" class="btn-ghost btn-sm" />
-            <x-mary-button label="Map" link="{{ route('map') }}" class="btn-ghost btn-sm" />
-            @auth
-                <x-mary-button label="Admin" link="/admin" class="btn-ghost btn-sm" />
-            @endauth
-            @guest
-                <x-mary-button label="Sign In" link="/admin/login" class="btn-primary btn-sm" />
-            @endguest
-        </x-slot:actions>
-    </x-mary-nav>
-
-    {{-- Hero --}}
-    <section class="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
-        <h1 class="text-5xl font-bold tracking-tight mb-4">Jesse Kregel Trail</h1>
-        <x-mary-button label="Browse Resources" link="{{ route('resources.index') }}" class="btn-primary btn-lg" />
-        <x-mary-button label="Explore the Map" link="{{ route('map') }}" class="btn-outline btn-lg" />
-    </section>
-
-    {{-- Category cards --}}
-    <section class="max-w-5xl mx-auto px-6 pb-20">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <x-mary-card title="Audio" class="text-center">
-                <x-slot:figure>
-                    <div class="py-8 flex justify-center">
-                        <x-phosphor-headphones-duotone class="w-16 h-16 text-primary" />
-                    </div>
-                </x-slot:figure>
-                <p class="text-base-content/60">Sound recordings, compositions, and sonic explorations.</p>
-            </x-mary-card>
-            <x-mary-card title="Video" class="text-center">
-                <x-slot:figure>
-                    <div class="py-8 flex justify-center">
-                        <x-phosphor-video-camera-duotone class="w-16 h-16 text-primary" />
-                    </div>
-                </x-slot:figure>
-                <p class="text-base-content/60">Films, documentation, and moving image works.</p>
-            </x-mary-card>
-            <x-mary-card title="Photo" class="text-center">
-                <x-slot:figure>
-                    <div class="py-8 flex justify-center">
-                        <x-phosphor-camera-duotone class="w-16 h-16 text-primary" />
-                    </div>
-                </x-slot:figure>
-                <p class="text-base-content/60">Photography, still images, and visual documentation.</p>
-            </x-mary-card>
-        </div>
-    </section>
-
-    {{-- Footer --}}
-    <footer class="border-t border-base-300 bg-base-200">
-        <div class="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between text-sm text-base-content/50">
-        </div>
-    </footer>
+    <nav style="position: relative; z-index: 1; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: clamp(2.5rem, 7vw, 5rem); line-height: 1; letter-spacing: 0.05em; white-space: nowrap; user-select: none;">
+        <a href="{{ route('map') }}" style="text-decoration: none; display: inline;">
+            <span style="color: rgba(241,242,242,0.5); font-weight: 400; font-size: 0.85em; vertical-align: baseline;">[ </span><span style="color: #f36f21;">map</span><span style="color: rgba(241,242,242,0.5); font-weight: 400; font-size: 0.85em; vertical-align: baseline;"> ]</span>
+        </a>
+        <span style="color: rgba(241,242,242,0.15); font-weight: 400; font-size: 0.6em;">&nbsp;&nbsp;&nbsp;</span>
+        <a href="{{ route('resources.index') }}" style="text-decoration: none; display: inline;">
+            <span style="color: rgba(241,242,242,0.5); font-weight: 400; font-size: 0.85em; vertical-align: baseline;">[ </span><span style="color: #98ca3d;">media</span><span style="color: rgba(241,242,242,0.5); font-weight: 400; font-size: 0.85em; vertical-align: baseline;"> ]</span>
+        </a>
+    </nav>
 
 </div>

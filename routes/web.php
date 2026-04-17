@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Volt::route('/', 'map')->name('home');
+Volt::route('/', 'home')->name('home');
+
+Volt::route('/map', 'map')->name('map');
 
 Volt::route('/resources', 'resources.index')->name('resources.index');
 
