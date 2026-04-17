@@ -184,6 +184,7 @@ function initLeafletMap() {
 
             // Derive bounding box from watershed extents
             const wb = watershedLayer.getBounds();
+            map.setMaxBounds(wb.pad(0.15));
             const inWatershedBounds = coords => {
                 const [lng, lat] = coords;
                 return lat >= wb.getSouth() && lat <= wb.getNorth()
