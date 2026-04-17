@@ -15,12 +15,13 @@ $stopsJson = computed(function () {
                 'id' => $stop->id,
                 'title' => $stop->title,
                 'description' => $stop->description,
-                'type' => $stop->type->value,
-                'type_label' => $stop->type->label(),
-                'type_color' => $stop->type->color(),
+                'type' => $stop->type?->value,
+                'type_label' => $stop->type?->label(),
+                'type_color' => $stop->type?->color(),
                 'latitude' => (float) $stop->latitude,
                 'longitude' => (float) $stop->longitude,
                 'trail_order' => $stop->trail_order,
+                'icon_url' => $stop->getFirstMediaUrl('icon') ?: null,
                 'photo' => $stop->getMedia('photo')->map(fn ($m) => [
                     'url' => $m->getUrl(),
                     'mime_type' => $m->mime_type,
@@ -68,90 +69,80 @@ $stopsJson = computed(function () {
 
     {{-- Sidebar --}}
     <div id="sidebar">
-        <div style="padding: 1rem; border-bottom: 1px solid oklch(var(--b3)); background: oklch(var(--b2));">
-            <h1 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Stops</h1>
-            <p style="margin: 0.25rem 0 0; font-size: 0.8rem; color: oklch(var(--bc) / 0.6);">Explore stops along the trail</p>
+
+        {{-- Header --}}
+        <div style="padding: 1rem 1.25rem; border-bottom: 2px solid oklch(var(--b3)); background: oklch(var(--b2)); flex-shrink: 0;">
+            <h1 style="margin: 0; font-size: 1rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(var(--bc));">Trail Stops</h1>
+            <p style="margin: 0.2rem 0 0; font-size: 0.75rem; color: oklch(var(--bc) / 0.45);">Select a stop to explore media</p>
         </div>
 
-        {{-- Accordion stop list --}}
-        <div style="flex: 1;">
-            <template x-if="stops.length === 0">
-                <p style="padding: 1.5rem; text-align: center; color: oklch(var(--bc) / 0.4); font-size: 0.9rem;">No published stops yet.</p>
-            </template>
-            <template x-for="stop in stops" :key="stop.id">
-                <div style="border-bottom: 1px solid oklch(var(--b3));">
-                    {{-- Accordion header --}}
-                    <button @click="selectStop(stop)"
-                            style="width: 100%; text-align: left; padding: 0.75rem 1rem; background: none; border: none; cursor: pointer; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; transition: background 0.15s;"
-                            :style="openStopId === stop.id ? 'background: oklch(var(--b2));' : ''"
-                            @mouseenter="$el.style.background = 'oklch(var(--b2))'"
-                            @mouseleave="$el.style.background = openStopId === stop.id ? 'oklch(var(--b2))' : ''">
-                        <div>
-                            <div style="font-weight: 600; font-size: 0.9rem;" x-text="stop.title"></div>
-                            
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0;">
-                            <span class="type-badge" :class="'badge-' + stop.type_color" x-text="stop.type_label"></span>
-                            <span style="font-size: 0.7rem; color: oklch(var(--bc) / 0.4); transition: transform 0.2s;"
-                                  :style="openStopId === stop.id ? 'transform: rotate(180deg)' : ''">▼</span>
-                        </div>
-                    </button>
+        {{-- Stop list --}}
+        <div style="flex: 1; overflow-y: auto; padding: 0.75rem 0.5rem;">
 
-                    {{-- Accordion body --}}
-                    <div x-show="openStopId === stop.id"
-                         x-transition:enter="transition ease-out duration-150"
-                         x-transition:enter-start="opacity-0 -translate-y-1"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         class="detail-panel"
-                         style="border-top: 1px solid oklch(var(--b3));">
+            @forelse ($this->stopsJson as $stop)
+                <div id="stop-wrapper-{{ $stop['id'] }}"
+                     x-on:change.capture="$event.target.type === 'checkbox' && $event.target.checked && panToStop({{ $stop['latitude'] }}, {{ $stop['longitude'] }}, {{ $stop['id'] }})">
+                    <x-mary-collapse separator>
+                        <x-slot:heading>
+                            <div class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-base-300 text-base-content/60">
+                                    {{ $stop['trail_order'] ?? $loop->iteration }}
+                                </span>
+                                <span class="flex-1 text-sm font-semibold">{{ $stop['title'] }}</span>
+                            </div>
+                        </x-slot:heading>
+                        <x-slot:content>
 
-                        <p style="font-size: 0.875rem; color: oklch(var(--bc) / 0.7); line-height: 1.5; margin: 0 0 0.75rem;"
-                           x-text="stop.description || 'No description available.'"></p>
+                            @if ($stop['description'])
+                                <p class="text-sm text-base-content/65 leading-relaxed mt-1">{{ $stop['description'] }}</p>
+                            @endif
 
-                        <template x-if="stop.photo.length > 0">
-                            <div>
+                            {{-- Photos --}}
+                            @if (count($stop['photo']) > 0)
                                 <p class="media-section-title">Photos</p>
                                 <div class="photo-grid">
-                                    <template x-for="photo in stop.photo" :key="photo.url">
-                                        <img :src="photo.url" :alt="photo.name" loading="lazy"
+                                    @foreach ($stop['photo'] as $photo)
+                                        <img src="{{ $photo['url'] }}" alt="{{ $photo['name'] }}" loading="lazy"
                                              style="cursor: zoom-in;"
-                                             @click="lightbox = { type: 'photo', url: photo.url, mime: photo.mime_type, title: photo.name }">
-                                    </template>
+                                             @click="lightbox = {{ \Illuminate\Support\Js::from(['type' => 'photo', 'url' => $photo['url'], 'mime' => $photo['mime_type'], 'title' => $photo['name']]) }}">
+                                    @endforeach
                                 </div>
-                            </div>
-                        </template>
+                            @endif
 
-                        <template x-if="stop.audio.length > 0">
-                            <div>
+                            {{-- Audio --}}
+                            @if (count($stop['audio']) > 0)
                                 <p class="media-section-title">Audio</p>
-                                <template x-for="track in stop.audio" :key="track.url">
-                                    <div>
-                                        <p style="font-size: 0.75rem; color: oklch(var(--bc) / 0.5); margin: 0.2rem 0;" x-text="track.name"></p>
-                                        <audio controls :src="track.url" :type="track.mime_type"></audio>
+                                @foreach ($stop['audio'] as $track)
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <p style="font-size: 0.7rem; color: oklch(var(--bc) / 0.45); margin: 0 0 0.2rem;">{{ $track['name'] }}</p>
+                                        <audio controls src="{{ $track['url'] }}" style="width: 100%; border-radius: 0.375rem;"></audio>
                                     </div>
-                                </template>
-                            </div>
-                        </template>
+                                @endforeach
+                            @endif
 
-                        <template x-if="stop.video.length > 0">
-                            <div>
+                            {{-- Video --}}
+                            @if (count($stop['video']) > 0)
                                 <p class="media-section-title">Video</p>
-                                <template x-for="clip in stop.video" :key="clip.url">
+                                @foreach ($stop['video'] as $clip)
                                     <div style="position: relative; cursor: pointer; background: #000; border-radius: 0.375rem; overflow: hidden; margin-bottom: 0.5rem;"
-                                         @click="lightbox = { type: 'video', url: clip.url, mime: clip.mime_type, title: clip.name }">
-                                        <video :src="clip.url + '#t=0.5'" preload="metadata" style="width: 100%; opacity: 0.7; display: block;"></video>
+                                         @click="lightbox = {{ \Illuminate\Support\Js::from(['type' => 'video', 'url' => $clip['url'], 'mime' => $clip['mime_type'], 'title' => $clip['name']]) }}">
+                                        <video src="{{ $clip['url'] }}#t=0.5" preload="metadata" style="width: 100%; opacity: 0.7; display: block;"></video>
                                         <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
-                                            <div style="width: 3rem; height: 3rem; border-radius: 9999px; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center;">
-                                                <svg style="width: 1.25rem; height: 1.25rem; fill: white; margin-left: 3px;" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                            <div style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center;">
+                                                <svg style="width: 1rem; height: 1rem; fill: white; margin-left: 2px;" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                             </div>
                                         </div>
                                     </div>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
+                                @endforeach
+                            @endif
+
+                        </x-slot:content>
+                    </x-mary-collapse>
                 </div>
-            </template>
+            @empty
+                <p style="padding: 2rem; text-align: center; color: oklch(var(--bc) / 0.35); font-size: 0.875rem;">No published stops yet.</p>
+            @endforelse
+
         </div>
     </div>
 

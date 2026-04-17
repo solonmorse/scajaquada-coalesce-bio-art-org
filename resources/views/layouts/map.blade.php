@@ -15,11 +15,6 @@
         #map-container { flex: 1; height: 100%; }
         .stop-item { cursor: pointer; padding: 0.75rem 1rem; border-bottom: 1px solid oklch(var(--b3)); transition: background 0.15s; }
         .stop-item:hover, .stop-item.active { background: oklch(var(--b2)); }
-        .badge-info { background: oklch(var(--in)); color: oklch(var(--inc)); }
-        .badge-success { background: oklch(var(--su)); color: oklch(var(--suc)); }
-        .badge-warning { background: oklch(var(--wa)); color: oklch(var(--wac)); }
-        .badge-danger { background: oklch(var(--er)); color: oklch(var(--erc)); }
-        .type-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
         .media-icons { display: flex; gap: 0.4rem; margin-top: 0.3rem; font-size: 0.75rem; color: oklch(var(--bc) / 0.5); }
         .detail-panel { padding: 1rem; }
         .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.5rem; margin: 0.75rem 0; }
@@ -35,7 +30,6 @@
     </x-slot:brand>
     <x-slot:actions>
         <x-mary-button label="Resources" link="{{ route('resources.index') }}" class="btn-ghost btn-sm" />
-        <x-mary-button label="Map" link="{{ route('map') }}" class="btn-ghost btn-sm" />
         @auth
             <x-mary-button label="Admin" link="/admin" class="btn-ghost btn-sm" />
         @endauth
@@ -64,6 +58,12 @@ function initLeafletMap() {
     const map = L.map('leaflet-map');
     window._leafletMap = map;
 
+    map.createPane('watershedPane');
+    map.getPane('watershedPane').style.zIndex = 210;
+
+    map.createPane('landusePane');
+    map.getPane('landusePane').style.zIndex = 220;
+
     map.createPane('creekPane');
     map.getPane('creekPane').style.zIndex = 300;
     map.getPane('creekPane').style.mixBlendMode = 'multiply';
@@ -73,79 +73,115 @@ function initLeafletMap() {
         maxZoom: 19,
     }).addTo(map);
 
-    fetch('/scajaquada_historic.geojson')
+    const firstCoord = geom => {
+        let c = geom.coordinates;
+        while (Array.isArray(c[0])) { c = c[0]; }
+        return c;
+    };
+
+    fetch('/watershed.geojson')
         .then(r => r.json())
-        .then(data => {
-            console.log('Features loaded:', data.features.length);
-            L.geoJSON(data, {
+        .then(watershedData => {
+            const watershedLayer = L.geoJSON(watershedData, {
+                pane: 'watershedPane',
                 style: {
-                    color: '#C4956A',
-                    weight: 4,
-                    opacity: 0.8,
-                    dashArray: '2 6',
-                    lineCap: 'round',
-                    lineJoin: 'round'
-                }
-            }).addTo(map);
-            // Invisible simplified layer used only for text placement
-            const labelLayer = L.geoJSON(data, {
-                style: { opacity: 0, fillOpacity: 0, weight: 0 }
-            }).addTo(map);
-            labelLayer.eachLayer(l => {
-                const lls = l.getLatLngs();
-                // Reverse direction, then decimate — keep every Nth point for a smoother label path
-                const N = 10;
-                const decimate = arr => [...arr].reverse().filter((_, i) => i % N === 0);
-                l.setLatLngs(Array.isArray(lls[0]) ? lls.map(decimate) : decimate(lls));
-            });
-            labelLayer.setText('Historic Scajaquada Creek', {
-                repeat: false,
-                center: true,
-                offset: 20,
-                attributes: {
-                    'font-size': '16',
-                    'font-family': 'sans-serif',
-                    'font-style': 'italic',
-                    'fill': '#C4956A',
-                    'fill-opacity': '0.85',
-                    'offset': '6',
+                    color: '#7ab8cc',
+                    weight: 1,
+                    opacity: 0.6,
+                    fillColor: '#a8d5a2',
+                    fillOpacity: 0.12,
                 },
-            });
+            }).addTo(map);
+
+            // Derive bounding box from watershed extents
+            const wb = watershedLayer.getBounds();
+            const inWatershedBounds = coords => {
+                const [lng, lat] = coords;
+                return lat >= wb.getSouth() && lat <= wb.getNorth()
+                    && lng >= wb.getWest()  && lng <= wb.getEast();
+            };
+
+            const programStyles = {
+                'Drinking Water Contaminant':        { fillColor: '#ef4444', color: '#b91c1c', fillOpacity: 0.45 },
+                'Environmental Restoration Program': { fillColor: '#4ade80', color: '#15803d', fillOpacity: 0.45 },
+                'Petroleum Remediation Program':     { fillColor: '#fb923c', color: '#c2410c', fillOpacity: 0.45 },
+                'Resource Conservation and Recovery':{ fillColor: '#a78bfa', color: '#6d28d9', fillOpacity: 0.45 },
+                'State Superfund Program':           { fillColor: '#f87171', color: '#991b1b', fillOpacity: 0.55 },
+                'Voluntary Cleanup Program':         { fillColor: '#fbbf24', color: '#b45309', fillOpacity: 0.45 },
+                'Brownfield Cleanup Program':        { fillColor: '#c4a882', color: '#9e8060', fillOpacity: 0.5  },
+            };
+
+            fetch('/remediation_parcels.geojson')
+                .then(r => r.json())
+                .then(data => {
+                    const local = data.features.filter(f => inWatershedBounds(firstCoord(f.geometry)));
+                    console.log(`remediation_parcels: ${data.features.length} total, ${local.length} in watershed bounds`);
+
+                    L.geoJSON(data, {
+                        pane: 'landusePane',
+                        filter: feature => inWatershedBounds(firstCoord(feature.geometry)),
+                        style: feature => {
+                            const s = programStyles[feature.properties.PROGRAM] ?? { fillColor: '#cccccc', color: '#999', fillOpacity: 0.3 };
+                            return { ...s, weight: 1, opacity: 0.6 };
+                        },
+                        onEachFeature(feature, layer) {
+                            const { PROGRAM, SITENAME } = feature.properties;
+                            const lines = [
+                                SITENAME    ? `<strong>${SITENAME}</strong>` : null,
+                                PROGRAM ? `<em>${PROGRAM}</em>`      : null,
+                            ].filter(Boolean).join('<br>');
+                            if (lines) {
+                                layer.bindTooltip(lines, { sticky: true, direction: 'top', opacity: 0.9 });
+                            }
+                        },
+                    }).addTo(map);
+                })
+                .catch(err => console.error('remediation_parcels.geojson error:', err));
         })
-        .catch(err => console.error('GeoJSON error:', err));
+        .catch(err => console.error('watershed.geojson error:', err));
 
-
-    fetch('/scajaquada.geojson')
+    fetch('/scajacuada_creek.geojson')
         .then(r => r.json())
         .then(data => {
             L.geoJSON(data, {
                 pane: 'creekPane',
                 style: feature => {
-                    const fcode = feature.properties.fcode;
-                    switch(fcode) {
-                        case 46006: // Perennial stream
-                            return { color: '#AAD3DF', weight: 8, opacity: 0.9, lineCap: 'round', lineJoin: 'round'};
-                        case 46003: // Intermittent stream
-                            return { color: '#AAD3DF', weight: 5, opacity: 0.7, dashArray: '4 4', lineCap: 'round', lineJoin: 'round' };
-                        case 33400: // Underground conduit
-                            return { color: '#000000', weight: 5, opacity: 0.5, dashArray: '2 6', lineCap: 'round', lineJoin: 'round' };
-                        case 55800: // Artificial path (Hoyt Lake etc)
-                            return { color: '#AAD3DF', weight: 10, opacity: 1, lineCap: 'round', lineJoin: 'round' };
-                        default:
-                            return { color: '#AAD3DF', weight: 1.5, opacity: 1, lineCap: 'round', lineJoin: 'round' };
+                    const tunnel = feature.properties.tunnel;
+                    const underground = tunnel === 'yes' || tunnel === 'culvert';
+                    const widthMap = { 1: 1, 2: 3, 3: 5 };
+                    const weight = widthMap[feature.properties.width] ?? 6;
+                    if (underground) {
+                        return { color: '#000000', weight: 1.5, opacity: 0.5, dashArray: '1 4', lineCap: 'round', lineJoin: 'round' };
                     }
-                }
+                    return { color: '#AAD3DF', weight, opacity: 0.85, lineCap: 'round', lineJoin: 'round' };
+                },
             }).addTo(map);
-        });
+        })
+        .catch(err => console.error('scajacuada_creek.geojson error:', err));
 
-
-
-
-    fetch('/pathway.geojson')
+    fetch('/lakes.geojson')
         .then(r => r.json())
         .then(data => {
             L.geoJSON(data, {
-                style: { color: '#1e3a5f', weight: 10, opacity: 1, lineCap: 'round', lineJoin: 'round' },
+                pane: 'creekPane',
+                style: {
+                    color: '#AAD3DF',
+                    weight: 0,
+                    fillColor: '#AAD3DF',
+                    fillOpacity: 1,
+                },
+            }).addTo(map);
+        })
+        .catch(err => console.error('lakes.geojson error:', err));
+
+
+
+
+    fetch('/Jesse_Kregal_Pathway.geojson')
+        .then(r => r.json())
+        .then(data => {
+            L.geoJSON(data, {
+                style: { color: '#1e3a5f', weight: 7, opacity: 1, lineCap: 'round', lineJoin: 'round' },
             }).addTo(map);
             const trail = L.geoJSON(data, {
                 style: { color: '#ddfa6d', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round' },
@@ -156,15 +192,27 @@ function initLeafletMap() {
             map.fitBounds(trail.getBounds(), { padding: [40, 40] });
 
             stopsData.forEach(stop => {
-                const color = typeColors[stop.type] || '#6b7280';
-                const marker = L.circleMarker([stop.latitude, stop.longitude], {
-                    radius: 10,
-                    fillColor: color,
-                    color: '#ffffff',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.85,
-                }).addTo(map);
+                let marker;
+                if (stop.icon_url) {
+                    marker = L.marker([stop.latitude, stop.longitude], {
+                        icon: L.icon({
+                            iconUrl: stop.icon_url,
+                            iconSize: [36, 36],
+                            iconAnchor: [18, 36],
+                            popupAnchor: [0, -36],
+                        }),
+                    }).addTo(map);
+                } else {
+                    const color = typeColors[stop.type] || '#6b7280';
+                    marker = L.circleMarker([stop.latitude, stop.longitude], {
+                        radius: 10,
+                        fillColor: color,
+                        color: '#ffffff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.85,
+                    }).addTo(map);
+                }
 
                 marker.bindTooltip(stop.title, { permanent: false, direction: 'top' });
 
@@ -200,7 +248,6 @@ function mapApp(stopsData, focusStopId) {
 
     return {
         stops: stopsData,
-        openStopId: null,
         lightbox: null,
 
         init() {
@@ -209,13 +256,28 @@ function mapApp(stopsData, focusStopId) {
             });
         },
 
-        selectStop(stop) {
-            this.openStopId = this.openStopId === stop.id ? null : stop.id;
-
-            if (this.openStopId && window._leafletMap && window._leafletMarkers[stop.id]) {
-                window._leafletMap.setView([stop.latitude, stop.longitude], 16, { animate: true });
-                window._leafletMarkers[stop.id].openTooltip();
+        panToStop(lat, lng, stopId) {
+            if (window._leafletMap) {
+                window._leafletMap.setView([lat, lng], 16, { animate: true });
             }
+            if (window._leafletMarkers && window._leafletMarkers[stopId]) {
+                window._leafletMarkers[stopId].openTooltip();
+            }
+        },
+
+        selectStop(stop) {
+            const wrapper = document.getElementById(`stop-wrapper-${stop.id}`);
+            if (wrapper) {
+                const checkbox = wrapper.querySelector('input[type="checkbox"]');
+                if (checkbox && !checkbox.checked) {
+                    document.querySelectorAll('#sidebar input[type="checkbox"]').forEach(cb => {
+                        if (cb !== checkbox) { cb.checked = false; }
+                    });
+                    checkbox.checked = true;
+                    wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+            this.panToStop(stop.latitude, stop.longitude, stop.id);
         },
     };
 }
