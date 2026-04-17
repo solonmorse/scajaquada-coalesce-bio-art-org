@@ -258,7 +258,7 @@ function mapApp(stopsData, focusStopId) {
                 window._leafletMap.setView([lat, lng], 16, { animate: true });
             }
             if (window._leafletMarkers && window._leafletMarkers[stopId]) {
-                window._leafletMarkers[stopId].openTooltip();
+                window._leafletMarkers[stopId].openPopup();
             }
         },
 
